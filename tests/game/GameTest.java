@@ -21,7 +21,7 @@ class GameTest {
         List<Choice> availableChoices = new ArrayList<>(game.getAvailableChoices());
         game.nextRound();
 
-        assertAll(() -> assertEquals(6, game.getNumberOfDices()),
+        assertAll(() -> assertEquals(6, game.getNumberOfSpareDices()),
                 () -> assertTrue(game.getAvailableChoices().isEmpty()),
                 () -> assertNotEquals(availableChoices, game.getAvailableChoices()));
     }
@@ -52,7 +52,7 @@ class GameTest {
     }
 
     @Test
-    @Description("Lets assume none of the players doesn't yet have 10000 points")
+    @Description("Assume none of the players have 10000 points yet")
     void isFinished() {
         Game game = new Game(Arrays.asList(
                 new Player("Denis"),
@@ -74,16 +74,11 @@ class GameTest {
     }
 
     @Test
-    void evaluatePickedChoices() {
-        // TODO: napisi test
-    }
-
-    @Test
     void getInfo() {
         Game game = new Game(Arrays.asList(
                 new Player("Denis"),
                 new Player("Matej"),
                 new Player("Dejan")));
-        assertTrue(game.getInfo() instanceof String);
+        assertTrue(game.getScoreBoard() instanceof String);
     }
 }

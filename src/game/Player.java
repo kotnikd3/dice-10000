@@ -1,10 +1,8 @@
 package game;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 class Player {
     private int score = 0;
@@ -17,18 +15,36 @@ class Player {
         this.name = name;
     }
 
-    public void addRoundScoreToScore() {
-        this.score += roundScore;
+    public void throwDices(DicesSingleton dices, int n) {
+        dices.shuffle(n);
     }
 
-    public void addToRoundScore(int diceScore) { this.roundScore += diceScore; }
+    /**
+     * Add score from player's picked choices to player's round score.
+     * Check about finishing the round.
+     * Assume player is honest and fair (he can evaluate round even if other players go on a coffee break).
+     */
+    public void evaluateRound(int minScore) {
+        int diceScore = pickedChoices.stream().mapToInt(Choice::getScore).sum();
+        roundScore += diceScore;
 
-    public void setTurnAndReset(boolean turn) {
-        this.turn = turn;
-        reset();
+        // If player choosed to finish or he didn't choose anything
+        if (choiceFinishRound() || pickedChoices.isEmpty()) {
+            if (roundScore >= minScore)
+                score += roundScore;
+            setTurn(false);
+            reset();
+        }
     }
 
-    private void reset() {
+    private boolean choiceFinishRound() { return pickedChoices.stream().anyMatch(c -> c.finishRound()); }
+
+    public void setTurn(boolean turn) { this.turn = turn; }
+
+    /**
+     * For testing purposes as well.
+     */
+    protected void reset() {
         resetRoundScore();
         clearPickedChoices();
     }
@@ -37,57 +53,45 @@ class Player {
 
     private void clearPickedChoices() { pickedChoices.clear(); }
 
-    public void throwDices(DicesSingleton dices, int n) {
-        dices.shuffle(n);
-    }
-
-    // TODO: daj v drug razred?
     /**
      * Make a subset of given choices.
-     * @param choices list of all given choices player can choose from
+     * @param availableChoices list of all given choices player can choose from
      */
-    public void pickChoices(List<Choice> choices) {
+    public void pickChoices(List<Choice> availableChoices, Input input) throws IOException {
         clearPickedChoices();
 
-        int i = 0;
-        for (Choice c : choices) {
-            System.out.println("#" + i + ": " + c.toString());
-            i++;
-        }
+        if (input.isValid()) {
+            List<Integer> indexes = input.getIndexes();
 
-        Scanner keyboard = new Scanner(System.in);
-        System.out.print("Pick #: ");
-        String choices_str = keyboard.nextLine();
+            indexes.stream().forEach(index -> {
+                if (index >= 0 && index < availableChoices.size())
+                    pickedChoices.add(availableChoices.get(index));
+            });
 
-        int [] pickedIndexes = Stream.of(choices_str.split(" "))
-                .mapToInt(Integer::parseInt)
-                .toArray();
-
-        IntStream.of(pickedIndexes).forEach(element -> {
-            if (element < choices.size() && element >= 0) {
-                pickedChoices.add(choices.get(element));
+            if (ChoiceEvaluator.areChoicesExclusive(pickedChoices)) {
+                throw new IOException("You can't choose exclusive choices!");
             }
-        });
-
-        if (ChoiceEvaluator.areChoicesExclusive(pickedChoices)) {
-            System.out.println("YOU CAN'T CHOOSE EXCLUSIVE CHOICES! Repeat with choosing:");
-            pickChoices(choices);
+        } else {
+            throw new IOException("Invalid input!");
         }
     }
 
-    public int getScore() {
-        return score;
-    }
+    public int getScore() { return score; }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
 
     public int getRoundScore() { return roundScore; }
 
     public List<Choice> getPickedChoices() { return pickedChoices; }
 
-    public boolean isTurn() {
-        return turn;
-    }
+    public int getNumberOfUsedDices() { return pickedChoices.stream().mapToInt(Choice::getNumberOfDices).sum(); }
+
+    public boolean isTurn() { return turn; }
+
+    public boolean choiceExitGame() { return pickedChoices.stream().anyMatch(c -> c.exitGame()); }
+
+    /**
+     * For testing purposes only.
+     */
+    protected void setPickedChoices(List<Choice> pickedChoices) { this.pickedChoices = pickedChoices; }
 }

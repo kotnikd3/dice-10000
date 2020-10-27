@@ -12,18 +12,18 @@ import java.util.stream.IntStream;
 
 class DicesSingleton {
     private static DicesSingleton dices = null;
-    private static List<Integer> numbers;
+    private static List<Integer> integers;
     private static Random rd = new Random();
 
     private DicesSingleton(int initialCapacity) {
-        numbers = new ArrayList<Integer>(initialCapacity);
+        integers = new ArrayList<Integer>(initialCapacity);
     }
 
     /**
      * Constructor for testing purposes
      */
     protected DicesSingleton(List<Integer> numbers) {
-        this.numbers = numbers;
+        this.integers = numbers;
     }
 
     public static synchronized DicesSingleton getInstance(int initialCapacity) {
@@ -39,7 +39,7 @@ class DicesSingleton {
      * @param n number of dices to be 'thrown'
      */
     public void shuffle(int n) {
-        numbers.clear();
+        integers.clear();
         makeRandomNumbers(n);
     }
 
@@ -48,10 +48,9 @@ class DicesSingleton {
      * @param n number of integers to be inserted into list
      */
     private static void makeRandomNumbers(int n) {
-        IntStream.range(0, n).forEach(i -> numbers.add(rd.nextInt(6) + 1));
+        // I wonder if there is a cleaner way to do this in Java 8.
+        IntStream.range(0, n).forEach(i -> integers.add(rd.nextInt(6) + 1));
     }
 
-    public List<Integer> getNumbers() {
-        return numbers;
-    }
+    public List<Integer> getNumbers() { return integers; }
 }

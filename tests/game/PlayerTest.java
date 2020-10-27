@@ -1,8 +1,10 @@
 package game;
 
+import com.sun.org.glassfish.gmbal.Description;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +15,7 @@ class PlayerTest {
 
     @Test
     void setTurn() {
-        player.setTurnAndReset(true);
+        player.setTurn(true);
         assertTrue(player.isTurn());
     }
 
@@ -29,33 +31,125 @@ class PlayerTest {
     }
 
     @Test
-    @Disabled("Ignore for now")
-    void makeDecision() {
+    @Description("Player gave correct input")
+    void pickChoicesScore() {
+        List<Choice> choices = new ArrayList<Choice>() {{
+            add(new Choice(0, 0, 0, Choice.Type.FINISH_ROUND)); // Index: 0
+            add(new Choice(100, 1, 1, Choice.Type.ONE_TIME)); // Index: 1
+            add(new Choice(300, 3, 3, Choice.Type.THREE_TIMES)); // Index: 2
+            add(new Choice(100, 2, 5, Choice.Type.TWO_TIMES)); // Index: 3
+        }};
+
+        KeyboardInput input = new KeyboardInput();
+        input.setInput("0 1 2");
+        try {
+            player.pickChoices(choices, input);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        player.evaluateRound(Game.MIN_ROUND_SCORE);
+
+        assertAll(() -> assertEquals(0, player.getRoundScore()),
+                () -> assertEquals(false, player.isTurn()),
+                () -> assertEquals(400, player.getScore()));
+    }
+
+    @Test
+    @Description("Check about not valid input that player might give")
+    void pickChoicesNotValidInput() {
+        List<Choice> choices = new ArrayList<Choice>() {{
+            add(new Choice(0, 0, 0, Choice.Type.FINISH_ROUND)); // Index: 0
+            add(new Choice(100, 1, 1, Choice.Type.ONE_TIME)); // Index: 1
+            add(new Choice(300, 3, 3, Choice.Type.THREE_TIMES)); // Index: 2
+            add(new Choice(100, 2, 5, Choice.Type.TWO_TIMES)); // Index: 3
+        }};
+
+        KeyboardInput input = new KeyboardInput();
+        input.setInput("fekfppow");
+
+        assertThrows(IOException.class, () -> {
+            player.pickChoices(choices, input);
+        });
+    }
+
+    @Test
+    @Description("Player chosed exlusive choices")
+    void pickChoicesExclusiveInput() {
+        List<Choice> choices = new ArrayList<Choice>() {{
+            add(new Choice(100, 1, 1, Choice.Type.ONE_TIME)); // Index: 0
+            add(new Choice(100, 2, 1, Choice.Type.TWO_TIMES)); // Index: 1
+        }};
+
+        KeyboardInput input = new KeyboardInput();
+        input.setInput("0 1");
+
+        assertThrows(IOException.class, () -> {
+            player.pickChoices(choices, input);
+        });
+    }
+
+    @Test
+    void setPickedChoices() {
+        player.reset();
         List<Choice> choices = new ArrayList<Choice>() {{
             add(new Choice(100, 1, 1, Choice.Type.ONE_TIME));
             add(new Choice(200, 2, 1, Choice.Type.TWO_TIMES));
             add(new Choice(0, 0, 0, Choice.Type.FINISH_ROUND));
         }};
+        player.setPickedChoices(choices);
 
-        player.pickChoices(choices);
+        List<Choice> pickedChoices = player.getPickedChoices();
+        assertEquals(choices, pickedChoices);
     }
 
     @Test
-    void addRoundScoreToScore() {
-        player.setTurnAndReset(true);
-        player.addToRoundScore(100);
-        player.addToRoundScore(100);
-        player.addRoundScoreToScore();
-        assertEquals(200, player.getScore());
+    void exitGameChoice() {
+        player.reset();
+        List<Choice> choices = new ArrayList<Choice>() {{
+            add(new Choice(0,0,0, Choice.Type.EXIT_GAME));
+        }};
+        player.setPickedChoices(choices);
+        assertTrue(player.choiceExitGame());
+    }
+
+    @Test
+    void evaluateRound() {
+        player.reset();
+        List<Choice> choices = new ArrayList<Choice>() {{
+            add(new Choice(100, 1, 1, Choice.Type.ONE_TIME));
+            add(new Choice(200, 2, 1, Choice.Type.TWO_TIMES));
+            add(new Choice(200, 2, 1, Choice.Type.TWO_TIMES));
+            add(new Choice(0, 0, 0, Choice.Type.FINISH_ROUND));
+        }};
+        player.setPickedChoices(choices);
+        player.evaluateRound(Game.MIN_ROUND_SCORE);
+
+        Player player2 = new Player("player2");
+        choices = new ArrayList<Choice>() {{
+            add(new Choice(100, 1, 1, Choice.Type.ONE_TIME));
+            add(new Choice(200, 2, 1, Choice.Type.TWO_TIMES));
+        }};
+        player2.setPickedChoices(choices);
+        player2.evaluateRound(Game.MIN_ROUND_SCORE);
+
+        assertAll(() -> assertEquals(0, player.getRoundScore()),
+                () -> assertEquals(500, player.getScore()),
+                () -> assertEquals(300, player2.getRoundScore()),
+                () -> assertEquals(0, player2.getScore()));
     }
 
     @Test
     void reset() {
-        Player player2 = new Player("player");
-        player2.addToRoundScore(100);
-        player2.setTurnAndReset(true);
-        player2.addRoundScoreToScore();
-        assertAll(() -> assertEquals(0, player2.getScore()),
-                () -> assertEquals(0, player2.getRoundScore()));
+        player.reset();
+        List<Choice> choices = new ArrayList<Choice>() {{
+            add(new Choice(100, 1, 1, Choice.Type.ONE_TIME));
+            add(new Choice(200, 2, 1, Choice.Type.TWO_TIMES));
+        }};
+        player.setPickedChoices(choices);
+        player.evaluateRound(Game.MIN_ROUND_SCORE);
+        player.reset();
+
+        assertAll(() -> assertEquals(0, player.getRoundScore()),
+                () -> assertEquals(0, player.getScore()));
     }
 }
