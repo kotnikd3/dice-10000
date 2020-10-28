@@ -4,4 +4,4 @@
 
 ### Class diagram
 \
-![class diagram](Documentation/UML.png)
+![class diagram](documentation/UML.png)
