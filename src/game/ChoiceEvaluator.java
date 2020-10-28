@@ -12,7 +12,7 @@ public class ChoiceEvaluator {
      * @param dices integers in the object Dices
      * @return List of all the available choices player can later choose from
      */
-    public static List<Choice> makeChoices(DicesSingleton dices) {
+    public static List<Choice> makeChoices(IDices dices) {
         List<Choice> list = new ArrayList<>();
 
         // We always have an option to finish the game or to finish the round

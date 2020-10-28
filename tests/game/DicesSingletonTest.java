@@ -10,7 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DicesSingletonTest {
-    private DicesSingleton dicesInstance = DicesSingleton.getInstance(6);
+    private IDices dicesInstance = DicesSingleton.getInstance(6);
     private List<Integer> dicesNumbers = dicesInstance.getNumbers();
 
     @Test
@@ -29,7 +29,7 @@ class DicesSingletonTest {
     @Test
     @DisplayName("Make sure of right use of singleton pattern")
     void sameInstance() {
-        DicesSingleton dicesInstance2 = DicesSingleton.getInstance(123);
+        IDices dicesInstance2 = DicesSingleton.getInstance(123);
         List<Integer> dicesNumbers2 = dicesInstance2.getNumbers();
 
         assertAll(() -> assertEquals(dicesInstance, dicesInstance2),
@@ -47,7 +47,7 @@ class DicesSingletonTest {
             add(2);
             add(2);
         }};
-        DicesSingleton dices = new DicesSingleton(list);
+        IDices dices = new DicesSingleton(list);
         List<Integer> copyList = new ArrayList<>(dices.getNumbers());
         dices.getNumbers().removeAll(Arrays.asList(1));
 

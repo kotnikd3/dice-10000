@@ -7,10 +7,10 @@ import java.util.stream.IntStream;
 
 /**
  * Dices are represented as a list of integers.
- * Here we are using singleton pattern.
+ * Singleton pattern in use.
  */
 
-class DicesSingleton {
+class DicesSingleton implements IDices {
     private static DicesSingleton dices = null;
     private static List<Integer> integers;
     private static Random rd = new Random();

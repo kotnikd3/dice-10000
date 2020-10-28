@@ -47,7 +47,7 @@ class GameTest {
                 new Player("Matej"),
                 new Player("Dejan")));
 
-        DicesSingleton dices = game.getDICES();
+        IDices dices = game.getDices();
         assertTrue(dices.getNumbers() instanceof List);
     }
 
@@ -67,8 +67,8 @@ class GameTest {
                 new Player("Denis"),
                 new Player("Matej"),
                 new Player("Dejan")));
-        Player player1 = game.getNextPlayer();
-        Player player2 = game.getNextPlayer();
+        IPlayer player1 = game.getNextPlayer();
+        IPlayer player2 = game.getNextPlayer();
 
         assertNotEquals(player1, player2);
     }
